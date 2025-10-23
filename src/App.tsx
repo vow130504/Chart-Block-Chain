@@ -94,6 +94,7 @@ function App() {
     },
     [setActiveIndex]
   );
+  const TypedPie = Pie as any;
 
   return (
     <div>
@@ -119,39 +120,66 @@ function App() {
 
       {/* PHẦN 2: BIỂU ĐỒ TRÒN (ĐÃ TÍCH HỢP HIỆU ỨNG MỚI) */}
       <h2>Phân bổ tài sản (Doughnut Chart)</h2>
-      <ResponsiveContainer width="100%" height={450}>
-        <PieChart>
-          <Tooltip contentStyle={{ backgroundColor: '#111', border: '1px solid #555' }} labelStyle={{ color: '#fff' }}/>
-          <Legend layout="vertical" align="right" verticalAlign="middle" iconType="circle" wrapperStyle={{ color: '#fff' }}/>
-          <Pie
-            // (THAY ĐỔI) Thêm các props để kích hoạt hiệu ứng active
-            {...({ activeIndex, activeShape: renderActiveShape } as any)}
-            onMouseEnter={onPieEnter}
-            
-            // Các props cũ
-            data={pieChartData}
-            cx="50%"
-            cy="50%"
-            innerRadius={80}
-            outerRadius={120}
-            fill="#8884d8"
-            dataKey="value"
-            paddingAngle={1}
-            // (THAY ĐỔI) Không cần label tĩnh nữa
-            // labelLine={false}
-            // label={false}
-          >
-            {/* Label tổng giá trị ở giữa vẫn giữ nguyên khi không hover */}
-            {/* Tuy nhiên, `renderActiveShape` sẽ vẽ đè tên token lên đây khi hover */}
-            <Label value={TOTAL_VALUE} position="center" fill="#fff" fontSize={30} fontWeight="bold"/>
-            
-            {/* Màu sắc cho từng slice (không đổi) */}
-            {pieChartData.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]}/>
-            ))}
-          </Pie>
-        </PieChart>
-      </ResponsiveContainer>
+      <ResponsiveContainer width="100%" height={460}>
+  <PieChart>
+    <defs>
+      {COLORS.map((color, index) => (
+        <radialGradient id={`grad-${index}`} key={index}>
+          <stop offset="0%" stopColor="#fff" stopOpacity={0.3}/>
+          <stop offset="100%" stopColor={color}/>
+        </radialGradient>
+      ))}
+    </defs>
+
+    <Tooltip
+      contentStyle={{ backgroundColor: '#111', border: '1px solid #555', borderRadius: '10px' }}
+      labelStyle={{ color: '#fff', fontWeight: 'bold' }}
+    />
+    <Legend
+      layout="vertical"
+      align="right"
+      verticalAlign="middle"
+      iconType="circle"
+      wrapperStyle={{ color: '#fff', fontSize: 14 }}
+    />
+
+    <TypedPie
+      activeIndex={activeIndex}
+      activeShape={renderActiveShape}
+      onMouseEnter={onPieEnter}
+      data={pieChartData}
+      cx="50%"
+      cy="50%"
+      innerRadius={100}
+      outerRadius={150}
+      paddingAngle={2}
+      dataKey="value"
+    >
+      <Label
+        value={`$${TOTAL_VALUE.toLocaleString()}`}
+        position="center"
+        fill="#fff"
+        fontSize={28}
+        fontWeight="700"
+      />
+      {pieChartData.map((entry, index) => (
+        <Cell
+          key={`cell-${index}`}
+          fill={`url(#grad-${index})`}
+          stroke="#1a1a1a"
+          strokeWidth={2}
+          style={{
+            filter: activeIndex === index ? 'drop-shadow(0 0 10px rgba(255,255,255,0.5))' : 'none',
+            transform: activeIndex === index ? 'scale(1.03)' : 'scale(1)',
+            transformOrigin: 'center',
+            transition: 'all 0.3s ease'
+          }}
+        />
+      ))}
+    </TypedPie>
+  </PieChart>
+</ResponsiveContainer>
+
     </div>
   );
 }

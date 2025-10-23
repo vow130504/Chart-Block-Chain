@@ -57,3 +57,16 @@ body {
 }
 
 
+.recharts-legend-item-text {
+  font-size: 14px !important;
+  fill: #eee !important;
+}
+
+.recharts-text {
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+}
+
+.recharts-sector {
+  transition: all 0.3s ease;
+}
