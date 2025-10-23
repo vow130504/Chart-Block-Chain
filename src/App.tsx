@@ -1,55 +1,159 @@
 // File: App.tsx
 
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import './App.css'; // <-- LỖI 1: BẠN ĐÃ THIẾU DÒNG NÀY
+import React, { useCallback, useState } from 'react'; // <-- (THAY ĐỔI) Import hooks
+import {
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Legend, Cell, Label, Sector // <-- (THAY ĐỔI) Import Sector
+} from 'recharts';
+import './App.css';
 
-// Dữ liệu mẫu - bạn sẽ thay thế bằng dữ liệu on-chain của mình
+// =================================================================
+// DỮ LIỆU (KHÔNG ĐỔI)
+// =================================================================
 const onChainData = [
-  { date: '10/01/2025', balance: 0 },
-  { date: '10/02/2025', balance: 0 },
-  { date: '10/03/2025', balance: 38000 },
-  { date: '10/04/2025', balance: 29000 },
-  { date: '10/05/2025', balance: 9000 },
-  { date: '10/06/2025', balance: 26000 },
+  { date: '10/01/2025', balance: 0 }, { date: '10/02/2025', balance: 0 },
+  { date: '10/03/2025', balance: 38000 }, { date: '10/04/2025', balance: 29000 },
+  { date: '10/05/2025', balance: 9000 }, { date: '10/06/2025', balance: 26000 },
   { date: '10/07/2025', balance: 11000 },
 ];
+const pieChartData = [
+  { name: 'BNB', value: 9440 }, { name: 'ETH', value: 1610 },
+  { name: 'AVAX', value: 17.5 }, { name: 'USDC', value: 5.56 },
+  { name: 'SIREN', value: 3.22 }, { name: 'Other', value: 6.12 },
+];
+const COLORS = ['#8a2be2', '#fa8072', '#f39c12', '#3498db', '#2980b9', '#2ecc71'];
+const TOTAL_VALUE = 11082.4;
 
-// LỖI 2: Đổi tên component thành `App` để khớp với tên file
-function App() {
+
+// =================================================================
+// (MỚI) HÀM VẼ SHAPE KHI ACTIVE (HOVER)
+// Dựa trên sandbox bạn cung cấp và đã tùy chỉnh lại
+// =================================================================
+const renderActiveShape = (props: any) => {
+  const RADIAN = Math.PI / 180;
+  const { cx, cy, midAngle, innerRadius, outerRadius, startAngle, endAngle, fill, payload, percent, value } = props;
+  const sin = Math.sin(-RADIAN * midAngle);
+  const cos = Math.cos(-RADIAN * midAngle);
+  const sx = cx + (outerRadius + 10) * cos;
+  const sy = cy + (outerRadius + 10) * sin;
+  const mx = cx + (outerRadius + 30) * cos;
+  const my = cy + (outerRadius + 30) * sin;
+  const ex = mx + (cos >= 0 ? 1 : -1) * 22;
+  const ey = my;
+  const textAnchor = cos >= 0 ? 'start' : 'end';
+
   return (
-    // Thêm div bọc ngoài để áp dụng style từ App.css
+    <g>
+      {/* Phần text tên token ở giữa khi hover */}
+      <text x={cx} y={cy} dy={8} textAnchor="middle" fill={fill} fontSize={16} fontWeight="bold">
+        {payload.name}
+      </text>
+      {/* Sector chính của miếng bánh */}
+      <Sector
+        cx={cx}
+        cy={cy}
+        innerRadius={innerRadius}
+        outerRadius={outerRadius}
+        startAngle={startAngle}
+        endAngle={endAngle}
+        fill={fill}
+      />
+      {/* Sector viền ngoài để làm nổi bật */}
+      <Sector
+        cx={cx}
+        cy={cy}
+        startAngle={startAngle}
+        endAngle={endAngle}
+        innerRadius={outerRadius + 6}
+        outerRadius={outerRadius + 10}
+        fill={fill}
+      />
+      {/* Đường kẻ và text chi tiết bên ngoài */}
+      <path d={`M${sx},${sy}L${mx},${my}L${ex},${ey}`} stroke={fill} fill="none" />
+      <circle cx={ex} cy={ey} r={2} fill={fill} stroke="none" />
+      <text x={ex + (cos >= 0 ? 1 : -1) * 12} y={ey} textAnchor={textAnchor} fill="#fff">
+        {`Value ${value.toFixed(2)}`}
+      </text>
+      <text x={ex + (cos >= 0 ? 1 : -1) * 12} y={ey} dy={18} textAnchor={textAnchor} fill="#999">
+        {`(${(percent * 100).toFixed(2)}%)`}
+      </text>
+    </g>
+  );
+};
+
+
+// Component App
+function App() {
+  // (MỚI) State để lưu index của slice đang được hover
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  // (MỚI) Callback để cập nhật state khi người dùng hover vào một slice
+  const onPieEnter = useCallback(
+    (_: any, index: number) => {
+      setActiveIndex(index);
+    },
+    [setActiveIndex]
+  );
+
+  return (
     <div>
-      <h1>Biểu đồ On-Chain Balance (Dùng Recharts Codepen)</h1>
+      {/* PHẦN 1: BIỂU ĐỒ LINE CHART (KHÔNG ĐỔI) */}
+      <h1>Biểu đồ On-Chain Balance (Area Chart)</h1>
       <ResponsiveContainer width="100%" height={400}>
-        <AreaChart
-          data={onChainData}
-          margin={{
-            top: 10,
-            right: 30,
-            left: 0,
-            bottom: 0,
-          }}
-        >
+        <AreaChart data={onChainData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
           <defs>
-            {/* Tạo màu gradient cho giống với biểu đồ của bạn */}
             <linearGradient id="colorBalance" x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8}/>
               <stop offset="95%" stopColor="#8884d8" stopOpacity={0}/>
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} />
-          {/* Sửa lại trục X và Y để hiển thị đẹp hơn trên nền tối */}
-          <XAxis dataKey="date" stroke="#999" />
-          <YAxis stroke="#999" />
-          <Tooltip
-            contentStyle={{ backgroundColor: '#111', border: '1px solid #555' }}
-            labelStyle={{ color: '#fff' }}
-          />
-          <Area type="monotone" dataKey="balance" stroke="#8884d8" fillOpacity={1} fill="url(#colorBalance)" />
+          <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2}/>
+          <XAxis dataKey="date" stroke="#999"/>
+          <YAxis stroke="#999"/>
+          <Tooltip contentStyle={{ backgroundColor: '#111', border: '1px solid #555' }} labelStyle={{ color: '#fff' }}/>
+          <Area type="monotone" dataKey="balance" stroke="#8884d8" fillOpacity={1} fill="url(#colorBalance)"/>
         </AreaChart>
+      </ResponsiveContainer>
+
+      <hr style={{ margin: '40px 0', borderColor: '#555' }}/>
+
+      {/* PHẦN 2: BIỂU ĐỒ TRÒN (ĐÃ TÍCH HỢP HIỆU ỨNG MỚI) */}
+      <h2>Phân bổ tài sản (Doughnut Chart)</h2>
+      <ResponsiveContainer width="100%" height={450}>
+        <PieChart>
+          <Tooltip contentStyle={{ backgroundColor: '#111', border: '1px solid #555' }} labelStyle={{ color: '#fff' }}/>
+          <Legend layout="vertical" align="right" verticalAlign="middle" iconType="circle" wrapperStyle={{ color: '#fff' }}/>
+          <Pie
+            // (THAY ĐỔI) Thêm các props để kích hoạt hiệu ứng active
+            {...({ activeIndex, activeShape: renderActiveShape } as any)}
+            onMouseEnter={onPieEnter}
+            
+            // Các props cũ
+            data={pieChartData}
+            cx="50%"
+            cy="50%"
+            innerRadius={80}
+            outerRadius={120}
+            fill="#8884d8"
+            dataKey="value"
+            paddingAngle={1}
+            // (THAY ĐỔI) Không cần label tĩnh nữa
+            // labelLine={false}
+            // label={false}
+          >
+            {/* Label tổng giá trị ở giữa vẫn giữ nguyên khi không hover */}
+            {/* Tuy nhiên, `renderActiveShape` sẽ vẽ đè tên token lên đây khi hover */}
+            <Label value={TOTAL_VALUE} position="center" fill="#fff" fontSize={30} fontWeight="bold"/>
+            
+            {/* Màu sắc cho từng slice (không đổi) */}
+            {pieChartData.map((entry, index) => (
+              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]}/>
+            ))}
+          </Pie>
+        </PieChart>
       </ResponsiveContainer>
     </div>
   );
-};
+}
 
-export default App; // Export component App
+export default App;
