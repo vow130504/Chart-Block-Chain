@@ -5,28 +5,38 @@ import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts';
 import './App.css';
-// Import component ECharts mới
+// Import các component biểu đồ ECharts
 import EChartsPieChart from './components/EChartsPieChart';
+import EChartsBarChart from './components/EChartsBarChart';
 
 // =================================================================
-// DỮ LIỆU (KHÔNG ĐỔI)
+// DỮ LIỆU
 // =================================================================
+
+// Dữ liệu cho Area Chart (không đổi)
 const onChainData = [
   { date: '10/01/2025', balance: 0 }, { date: '10/02/2025', balance: 0 },
   { date: '10/03/2025', balance: 38000 }, { date: '10/04/2025', balance: 29000 },
   { date: '10/05/2025', balance: 9000 }, { date: '10/06/2025', balance: 26000 },
   { date: '10/07/2025', balance: 11000 },
 ];
+
+// Dữ liệu cho Pie Chart (không đổi)
 const pieChartData = [
-  { name: 'BNB', value: 9440 },
-  { name: 'ETH', value: 1610 },
-  { name: 'AVAX', value: 17.5 },
-  { name: 'USDC', value: 5.56 },
-  { name: 'SIREN', value: 3.22 },
-  { name: 'Other', value: 6.12 },
+  { name: 'BNB', value: 9440 }, { name: 'ETH', value: 1610 },
+  { name: 'AVAX', value: 17.5 }, { name: 'USDC', value: 5.56 },
+  { name: 'SIREN', value: 3.22 }, { name: 'Other', value: 6.12 },
 ];
 const COLORS = ['#3B82F6', '#6366F1', '#10B981', '#F59E0B', '#EF4444', '#6B7280'];
 const TOTAL_VALUE = 11082.4;
+
+// **DỮ LIỆU MỚI CHO BIỂU ĐỒ BAR CHART**
+// Dữ liệu mô phỏng dòng tiền Nạp/Rút trên các sàn trong 24h (đơn vị: USD)
+const exchangeFlowData = {
+  exchanges: ['Binance', 'Coinbase', 'Bybit', 'KuCoin', 'OKX'],
+  deposits:    [1250000, 950000, 480000, 650000, 880000],
+  withdrawals: [1100000, 1300000, 600000, 500000, 920000]
+};
 
 
 // Component App
@@ -53,13 +63,19 @@ function App() {
 
       <hr style={{ margin: '40px 0', borderColor: '#555' }}/>
 
-      {/* PHẦN 2: BIỂU ĐỒ TRÒN MỚI SỬ DỤNG ECHARTS */}
+      {/* PHẦN 2: BIỂU ĐỒ TRÒN (KHÔNG THAY ĐỔI) */}
       <h2>Phân bổ tài sản (Doughnut Chart)</h2>
       <EChartsPieChart 
         data={pieChartData} 
         colors={COLORS} 
         totalValue={TOTAL_VALUE} 
       />
+      
+      <hr style={{ margin: '40px 0', borderColor: '#555' }}/>
+
+      {/* **PHẦN 3: BIỂU ĐỒ CỘT NGANG XẾP CHỒNG MỚI** */}
+      <h2>Dòng tiền trên các sàn giao dịch (24h)</h2>
+      <EChartsBarChart data={exchangeFlowData} />
     </div>
   );
 }
