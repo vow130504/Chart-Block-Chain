@@ -61,7 +61,7 @@ const EChartsVerticalBarChart: React.FC<EChartsVerticalBarChartProps> = ({ data,
     },
     // Trục Y (Số lượng transactions)
     yAxis: {
-      type: 'value',
+      type: 'log', // <--- ĐÃ THAY ĐỔI SANG LOGARIT
       axisLabel: {
         color: '#999'
       }
@@ -83,7 +83,11 @@ const EChartsVerticalBarChart: React.FC<EChartsVerticalBarChartProps> = ({ data,
         label: {
           show: true,
           position: 'top',
-          color: '#ccc'
+          color: '#ccc',
+          formatter: (params: any) => {
+            // Hiển thị giá trị gốc (không bị logarit hóa)
+            return params.value;
+          }
         },
         emphasis: {
           focus: 'series'
